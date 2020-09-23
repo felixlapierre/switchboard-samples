@@ -2,7 +2,8 @@
 Sample senders and receivers to be used with the Switchboard project. https://github.com/felixlapierre/switchboard
 
 # Requirements
-* ffmpeg
+* [Python](https://www.python.org) 3.7.3+
+* [ffmpeg](https://ffmpeg.org) 4.1.6+
 
 # Usage
 1. Create your virtual environment and install the required packages  
