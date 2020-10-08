@@ -22,7 +22,7 @@ def receive(ip):
     
     # The following simply runs the following command
     # ffplay -autoexit udp://<ip>:23000
-    subprocess.call(['ffplay', '-autoexit', f'udp://{ip}:23000'])
+    subprocess.call(['ffplay', '-v', 'warning', '-stats', f'udp://{ip}:23000'])
 
 if __name__ == '__main__':
     receive()

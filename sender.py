@@ -24,7 +24,7 @@ def send(file, ip):
     # The following simply runs the following command
     # ffmpeg -i <input> -f mpegts udp://<ip>:23000
     stream = ffmpeg.input(file)
-    stream = ffmpeg.output(stream, f'udp://{ip}:23000', format = 'mpegts')
+    stream = ffmpeg.output(stream, f'udp://{ip}:23000', f = 'mpegts', v = 'warning', stats = None)
     ffmpeg.run(stream)
 
 if __name__ == '__main__':
