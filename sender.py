@@ -19,9 +19,9 @@ def send(file, ip):
             click.echo(f'Encoder with serial number {SENDER_SERIAL_NUMBER} has been successfully registered.')
     
     # This simply runs the following command
-    # ffmpeg -i <input> -f mpegts -v warning -stats udp://<ip>:23000
-    stream = ffmpeg.input(file)
-    stream = ffmpeg.output(stream, f'udp://{ip}:23000', f = 'mpegts', v = 'warning', stats = None)
+    # ffmpeg -re -i <input> -f mpegts -v warning -stats srt://<ip>:23000?pkt_size=1316
+    stream = ffmpeg.input(file, re = None)
+    stream = ffmpeg.output(stream, f'srt://{ip}:23000?pkt_size=1316', f = 'mpegts', v = 'warning', stats = None)
     ffmpeg.run(stream)
 
 if __name__ == '__main__':

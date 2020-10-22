@@ -18,8 +18,8 @@ def receive(ip):
             click.echo(f'Decoder with serial number {RECEIVER_SERIAL_NUMBER} has been successfully registered.')
     
     # This simply runs the following command
-    # ffplay -v warning -stats udp://<ip>:23000
-    subprocess.call(['ffplay', '-v', 'warning', '-stats', f'udp://{ip}:23000'])
+    # ffplay -v warning -stats -exitonkeydown srt://127.0.0.1:23000?mode=listener
+    subprocess.call(['ffplay', '-v', 'warning', '-stats', '-exitonkeydown', f'srt://{ip}:23000?mode=listener'])
 
 if __name__ == '__main__':
     receive()
