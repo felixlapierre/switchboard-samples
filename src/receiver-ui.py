@@ -36,6 +36,8 @@ def receive():
 
 
 def is_valid_ip(ip):
+    if ip == "localhost":
+        return True
     try:
         ipaddress.ip_address(ip)
     except ValueError:

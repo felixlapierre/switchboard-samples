@@ -58,6 +58,8 @@ def is_valid_file(input_file):
 
 
 def is_valid_ip(ip):
+    if ip == "localhost":
+        return True
     try:
         ipaddress.ip_address(ip)
     except ValueError:
