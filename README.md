@@ -11,7 +11,7 @@ Sample senders and receivers to be used with the Switchboard project. https://gi
 `source env/bin/activate` (or `env\Scripts\activate.bat` for Windows users)  
 `pip install -r requirements.txt`  
 
-2. Change directory to src
+2. Change directory to src  
 `cd src`
 
 3. Run the video receiver  
