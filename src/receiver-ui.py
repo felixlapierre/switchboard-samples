@@ -1,7 +1,43 @@
-import ipaddress, subprocess
+import ipaddress, subprocess, time
 from tkinter import *
 from tkinter import filedialog, messagebox
 from receiver import Receiver
+from threading import Thread
+
+
+def on_close_window():
+    global continue_polling
+    continue_polling = False
+    global continue_receiving
+    continue_receiving = False
+    root.destroy()
+
+
+def poll():
+    global continue_polling
+    continue_polling = True
+    while continue_polling:
+        time.sleep(5)
+        receiver.get_streams()
+
+
+def receive():
+    global continue_receiving
+    continue_receiving = True
+    while continue_receiving:
+        if receiver.pending_streams:
+            ip, port = receiver.consume_stream(receiver.pending_streams[0])
+            if ip and port:
+                subprocess.Popen(
+                    [
+                        "ffplay",
+                        "-autoexit",
+                        "-v",
+                        "warning",
+                        "-stats",
+                        f"srt://{ip}:{port}?mode=listener",
+                    ]
+                )
 
 
 def register():
@@ -21,20 +57,8 @@ def register():
 
 
 def start():
-    receiver.get_streams()
-    for stream in receiver.pending_streams:
-        ip, port = receiver.consume_stream(stream)
-        if ip and port:
-            subprocess.Popen(
-                [
-                    "ffplay",
-                    "-autoexit",
-                    "-v",
-                    "warning",
-                    "-stats",
-                    f"srt://{ip}:{port}?mode=listener",
-                ]
-            )
+    Thread(target=poll).start()
+    Thread(target=receive).start()
 
 
 def is_valid_ip(ip):
@@ -115,7 +139,6 @@ channel_port_entry.grid(row=2, column=1, pady=10)
 register_button.grid(row=0, column=2, rowspan=2, padx=20, pady=5)
 listening_label_frame.pack(expand="yes", fill="both")
 start_button.place(relx=0.5, rely=0.5, anchor=CENTER)
-# start_button.grid(row=0, column=0, padx=20, pady=5)
 
-
+root.protocol("WM_DELETE_WINDOW", on_close_window)
 root.mainloop()

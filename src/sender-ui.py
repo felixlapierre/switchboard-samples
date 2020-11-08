@@ -4,6 +4,48 @@ from tkinter import filedialog, messagebox
 from sender import Sender
 
 
+def on_close_window():
+    global continue_polling
+    continue_polling = False
+    global continue_sending
+    continue_sending = False
+    root.destroy()
+
+
+def poll():
+    global continue_polling
+    continue_polling = True
+    while continue_polling:
+        time.sleep(5)
+        sender.get_streams()
+
+
+def send():
+    global continue_sending
+    continue_sending = True
+    while continue_sending:
+        if sender.pending_streams:
+            ip, port = sender.consume_stream(sender.pending_streams[0])
+            if ip and port:
+                # To give time for receiver to start
+                # Need to find a more elegant solution in the future
+                time.sleep(3)
+                subprocess.Popen(
+                    [
+                        "ffmpeg",
+                        "-re",
+                        "-i",
+                        input_file,
+                        "-f",
+                        "mpegts",
+                        "-v",
+                        "warning",
+                        "-stats",
+                        f"srt://{ip}:{port}?pkt_size=1316",
+                    ]
+                )
+
+
 def register():
     sender.display_name = display_name_entry.get()
     sender.serial_number = serial_number_entry.get()
@@ -32,27 +74,8 @@ def start():
     if not is_valid_file(input_file):
         messagebox.showerror("Error", "Invalid file type.")
         return
-    sender.get_streams()
-    for stream in sender.pending_streams:
-        ip, port = sender.consume_stream(stream)
-        if ip and port:
-            # To give time for receiver to start
-            # Need to find a more elegant solution in the future
-            time.sleep(3)
-            subprocess.Popen(
-                [
-                    "ffmpeg",
-                    "-re",
-                    "-i",
-                    input_file,
-                    "-f",
-                    "mpegts",
-                    "-v",
-                    "warning",
-                    "-stats",
-                    f"srt://{ip}:{port}?pkt_size=1316",
-                ]
-            )
+    Thread(target=poll).start
+    Thread(target=send).start
 
 
 def is_valid_file(input_file):
@@ -163,4 +186,5 @@ choose_file_entry.grid(row=0, column=1)
 browse_button.grid(row=0, column=2, padx=20, pady=5)
 start_button.grid(row=3, column=2, pady=10)
 
+root.protocol("WM_DELETE_WINDOW", on_close_window)
 root.mainloop()
