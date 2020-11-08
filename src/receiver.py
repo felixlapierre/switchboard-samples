@@ -19,7 +19,7 @@ class Receiver:
         self.display_name = display_name
         self.serial_number = serial_number
         self.channel_port = channel_port
-        self.pending_streams = pending_streams
+        self.pending_streams = pending_streams if pending_streams is not None else []
 
     def register(self):
         response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")

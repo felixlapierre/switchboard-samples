@@ -14,12 +14,12 @@ class Sender:
         display_name=SENDER_DISPLAY_NAME,
         serial_number=SENDER_SERIAL_NUMBER,
         channel_port="20000",
-        pending_streams=[],
+        pending_streams=None,
     ):
         self.display_name = display_name
         self.serial_number = serial_number
         self.channel_port = channel_port
-        self.pending_streams = pending_streams
+        self.pending_streams = pending_streams if pending_streams is not None else []
 
     def register(self):
         response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")
