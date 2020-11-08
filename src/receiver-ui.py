@@ -29,7 +29,6 @@ def receive():
             ip, port = receiver.consume_stream(receiver.pending_streams[0])
             if ip and port:
                 continue_receiving = False
-                continue_polling = False
                 subprocess.Popen(
                     [
                         "ffplay",

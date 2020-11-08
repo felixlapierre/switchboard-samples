@@ -29,7 +29,6 @@ def send():
             ip, port = sender.consume_stream(sender.pending_streams[0])
             if ip and port:
                 continue_sending = False
-                continue_polling = False
                 # To give time for receiver to start
                 # Need to find a more elegant solution in the future
                 time.sleep(3)
