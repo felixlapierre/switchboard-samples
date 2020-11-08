@@ -48,7 +48,7 @@ class Receiver:
         else:
             return "Decoder already registered!"
 
-    def get_streams():
+    def get_streams(self):
         response = requests.get(STREAM_ENDPOINT)
         if response.status_code == 200:
             streams = response.json()
