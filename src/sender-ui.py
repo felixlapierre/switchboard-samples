@@ -36,7 +36,7 @@ def send():
                         "ffmpeg",
                         "-re",
                         "-i",
-                        input_file,
+                        choose_file_entry.get(),
                         "-f",
                         "mpegts",
                         "-v",
