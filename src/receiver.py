@@ -4,28 +4,54 @@ from constants import (
     DECODER_ENDPOINT,
     RECEIVER_DISPLAY_NAME,
     RECEIVER_SERIAL_NUMBER,
+    STREAM_ENDPOINT,
 )
 
 
 class Receiver:
     def __init__(
-        self, display_name=RECEIVER_DISPLAY_NAME, serial_number=RECEIVER_SERIAL_NUMBER
+        self,
+        display_name=RECEIVER_DISPLAY_NAME,
+        serial_number=RECEIVER_SERIAL_NUMBER,
+        channel_port="20000",
+        pending_streams=[],
     ):
         self.display_name = display_name
         self.serial_number = serial_number
+        self.channel_port = channel_port
+        self.pending_streams = pending_streams
 
     def register(self):
         response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")
         if response.status_code == 404:
             device_payload = {
                 "serialNumber": self.serial_number,
+                "ipAddress": "127.0.0.1",
                 "displayName": self.display_name,
                 "status": "Running",
             }
             r = requests.post(DEVICE_ENDPOINT, json=device_payload)
-            decoder_payload = {"serialNumber": self.serial_number}
+            decoder_payload = {
+                "serialNumber": self.serial_number,
+                "inputs": [
+                    {
+                        "channel": {
+                            "name": "Sample Receiver Channel 1",
+                            "port": self.channel_port,
+                        }
+                    }
+                ],
+            }
             r = requests.post(DECODER_ENDPOINT, json=decoder_payload)
             if r.status_code == 201:
                 return f"Decoder with serial number {self.serial_number} has been successfully registered."
         else:
             return "Decoder already registered!"
+
+    def get_streams():
+        response = requests.get(STREAM_ENDPOINT)
+        if response.status_code == 200:
+            streams = response.json()
+            for id in streams:
+                if id not in self.pending_streams:
+                    self.pending_streams.append(id)

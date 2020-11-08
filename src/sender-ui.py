@@ -7,6 +7,12 @@ from sender import Sender
 def register():
     sender.display_name = display_name_entry.get()
     sender.serial_number = serial_number_entry.get()
+    channel_port = channel_port_entry.get()
+    if not is_valid_port(channel_port):
+        messagebox.showerror("Error", "Invalid port.")
+        return
+    else:
+        sender.channel_port = channel_port
     return_message = sender.register()
     if return_message == "Encoder already registered!":
         messagebox.showerror("Error", return_message)
@@ -21,18 +27,12 @@ def browse():
         choose_file_entry.insert(0, root.filename)
 
 
-def send():
+def start():
     input_file = choose_file_entry.get()
     ip = ip_entry.get()
     port = port_entry.get()
     if not is_valid_file(input_file):
         messagebox.showerror("Error", "Invalid file type.")
-        return
-    if not is_valid_ip(ip):
-        messagebox.showerror("Error", "Invalid IP address.")
-        return
-    if not is_valid_port(port):
-        messagebox.showerror("Error", "Invalid port.")
         return
     subprocess.Popen(
         [
@@ -105,6 +105,11 @@ serial_number_label = Label(
 )
 serial_number_entry = Entry(registration_label_frame, width=30, font=default_font)
 serial_number_entry.insert(0, sender.serial_number)
+channel_port_label = Label(
+    registration_label_frame, text="Channel Port", width=20, font=default_font
+)
+channel_port_entry = Entry(registration_label_frame, width=30, font=default_font)
+channel_port_entry.insert(0, sender.channel_port)
 register_button = Button(
     registration_label_frame,
     text="Register",
@@ -122,8 +127,6 @@ choose_file_label = Label(
     streaming_label_frame, text="File", font=default_font, width=10
 )
 choose_file_entry = Entry(streaming_label_frame, width=40, font=default_font)
-ip_label = Label(streaming_label_frame, text="IP", font=default_font, width=10)
-ip_entry = Entry(streaming_label_frame, width=40, font=default_font)
 browse_button = Button(
     streaming_label_frame,
     text="Browse",
@@ -131,15 +134,13 @@ browse_button = Button(
     width=20,
     command=browse,
 )
-port_label = Label(streaming_label_frame, text="Port", font=default_font, width=10)
-port_entry = Entry(streaming_label_frame, width=40, font=default_font)
-send_button = Button(
+start_button = Button(
     streaming_label_frame,
-    text="Send",
+    text="Start",
     font=default_font,
     bg="#57A834",
     width=20,
-    command=send,
+    command=start,
 )
 
 # Placing on grid
@@ -148,15 +149,13 @@ display_name_label.grid(row=0, column=0)
 display_name_entry.grid(row=0, column=1, pady=10)
 serial_number_label.grid(row=1, column=0)
 serial_number_entry.grid(row=1, column=1)
+channel_port_label.grid(row=2, column=0)
+channel_port_entry.grid(row=2, column=1, pady=10)
 register_button.grid(row=0, column=2, rowspan=2, padx=20, pady=5)
 streaming_label_frame.pack(expand="yes", fill="both")
 choose_file_label.grid(row=0, column=0)
 choose_file_entry.grid(row=0, column=1)
 browse_button.grid(row=0, column=2, padx=20, pady=5)
-ip_label.grid(row=1, column=0)
-ip_entry.grid(row=1, column=1)
-port_label.grid(row=2, column=0)
-port_entry.grid(row=2, column=1, pady=10)
-send_button.grid(row=3, column=2)
+start_button.grid(row=3, column=2, pady=10)
 
 root.mainloop()
