@@ -12,7 +12,7 @@ def register():
         messagebox.showerror("Error", "Invalid port.")
         return
     else:
-        sender.channel_port = channel_port
+        receiver.channel_port = channel_port
     return_message = receiver.register()
     if return_message == "Decoder already registered!":
         messagebox.showerror("Error", return_message)
