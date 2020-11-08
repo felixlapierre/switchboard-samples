@@ -16,16 +16,19 @@ def register():
 
 def start():
     receiver.get_streams()
-    subprocess.Popen(
-        [
-            "ffplay",
-            "-autoexit",
-            "-v",
-            "warning",
-            "-stats",
-            f"srt://{ip}:{port}?mode=listener",
-        ]
-    )
+    for stream in receiver.pending_streams:
+        ip, port = receiver.consume_stream(stream)
+        if ip and port:
+            subprocess.Popen(
+                [
+                    "ffplay",
+                    "-autoexit",
+                    "-v",
+                    "warning",
+                    "-stats",
+                    f"srt://{ip}:{port}?mode=listener",
+                ]
+            )
 
 
 def is_valid_ip(ip):

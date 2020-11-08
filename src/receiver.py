@@ -55,3 +55,19 @@ class Receiver:
             for id in streams:
                 if id not in self.pending_streams:
                     self.pending_streams.append(id)
+
+    def consume_stream(self, id):
+        response = requests.get(f"{STREAM_ENDPOINT}/{id}")
+        if response.status_code == 200:
+            stream_info = response.json()
+            if (
+                stream_info["inputChannel"]["decoder"]["serialNumber"]
+                == self.serial_number
+            ):
+                ip = stream_info["outputChannel"]["encoder"]["device"]["ipAddress"]
+                port = stream_info["inputChannel"]["port"]
+                self.pending_streams.remove(id)
+                return (ip, port)
+            else:
+                self.pending_streams.remove(id)
+                return (None, None)

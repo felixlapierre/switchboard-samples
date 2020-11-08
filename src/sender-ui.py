@@ -1,4 +1,4 @@
-import ipaddress, subprocess
+import ipaddress, subprocess, time
 from tkinter import *
 from tkinter import filedialog, messagebox
 from sender import Sender
@@ -29,25 +29,28 @@ def browse():
 
 def start():
     input_file = choose_file_entry.get()
-    ip = ip_entry.get()
-    port = port_entry.get()
     if not is_valid_file(input_file):
         messagebox.showerror("Error", "Invalid file type.")
         return
-    subprocess.Popen(
-        [
-            "ffmpeg",
-            "-re",
-            "-i",
-            input_file,
-            "-f",
-            "mpegts",
-            "-v",
-            "warning",
-            "-stats",
-            f"srt://{ip}:{port}?pkt_size=1316",
-        ]
-    )
+    sender.get_streams()
+    for stream in sender.pending_streams:
+        ip, port = sender.consume_stream(stream)
+        if ip and port:
+            time.sleep(2)
+            subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-re",
+                    "-i",
+                    input_file,
+                    "-f",
+                    "mpegts",
+                    "-v",
+                    "warning",
+                    "-stats",
+                    f"srt://{ip}:{port}?pkt_size=1316",
+                ]
+            )
 
 
 def is_valid_file(input_file):
