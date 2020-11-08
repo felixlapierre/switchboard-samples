@@ -2,6 +2,7 @@ import ipaddress, subprocess, time
 from tkinter import *
 from tkinter import filedialog, messagebox
 from sender import Sender
+from threading import Thread
 
 
 def on_close_window():
