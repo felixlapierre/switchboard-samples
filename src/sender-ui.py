@@ -75,8 +75,8 @@ def start():
     if not is_valid_file(input_file):
         messagebox.showerror("Error", "Invalid file type.")
         return
-    Thread(target=poll).start
-    Thread(target=send).start
+    Thread(target=poll).start()
+    Thread(target=send).start()
 
 
 def is_valid_file(input_file):
