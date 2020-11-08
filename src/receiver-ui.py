@@ -7,6 +7,12 @@ from receiver import Receiver
 def register():
     receiver.display_name = display_name_entry.get()
     receiver.serial_number = serial_number_entry.get()
+    channel_port = channel_port_entry.get()
+    if not is_valid_port(channel_port):
+        messagebox.showerror("Error", "Invalid port.")
+        return
+    else:
+        sender.channel_port = channel_port
     return_message = receiver.register()
     if return_message == "Decoder already registered!":
         messagebox.showerror("Error", return_message)

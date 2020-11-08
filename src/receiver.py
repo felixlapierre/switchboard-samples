@@ -66,8 +66,6 @@ class Receiver:
             ):
                 ip = stream_info["outputChannel"]["encoder"]["device"]["ipAddress"]
                 port = stream_info["inputChannel"]["port"]
-                self.pending_streams.remove(id)
                 return (ip, port)
             else:
-                self.pending_streams.remove(id)
                 return (None, None)

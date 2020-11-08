@@ -36,7 +36,9 @@ def start():
     for stream in sender.pending_streams:
         ip, port = sender.consume_stream(stream)
         if ip and port:
-            time.sleep(2)
+            # To give time for receiver to start
+            # Need to find a more elegant solution in the future
+            time.sleep(3)
             subprocess.Popen(
                 [
                     "ffmpeg",
