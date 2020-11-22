@@ -14,12 +14,16 @@ class Receiver:
         display_name=RECEIVER_DISPLAY_NAME,
         serial_number=RECEIVER_SERIAL_NUMBER,
         channel_port="20000",
-        pending_streams=[],
+        pending_streams=None,
+        completed_streams=None,
     ):
         self.display_name = display_name
         self.serial_number = serial_number
         self.channel_port = channel_port
         self.pending_streams = pending_streams if pending_streams is not None else []
+        self.completed_streams = (
+            completed_streams if completed_streams is not None else []
+        )
 
     def register(self):
         response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")
@@ -53,7 +57,7 @@ class Receiver:
         if response.status_code == 200:
             streams = response.json()
             for id in streams:
-                if id not in self.pending_streams:
+                if id not in self.pending_streams and id not in self.completed_streams:
                     self.pending_streams.append(id)
 
     def consume_stream(self, id):

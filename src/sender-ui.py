@@ -26,9 +26,12 @@ def send():
     continue_sending = True
     while continue_sending:
         if sender.pending_streams:
-            ip, port = sender.consume_stream(sender.pending_streams[0])
+            print(
+                f"Pending Streams: {sender.pending_streams}, Completed Streams: {sender.completed_streams}"
+            )
+            stream_id = sender.pending_streams.pop(0)
+            ip, port = sender.consume_stream(stream_id)
             if ip and port:
-                continue_sending = False
                 # To give time for receiver to start
                 # Need to find a more elegant solution in the future
                 time.sleep(3)
@@ -42,10 +45,10 @@ def send():
                         "mpegts",
                         "-v",
                         "warning",
-                        "-stats",
                         f"srt://{ip}:{port}?pkt_size=1316",
                     ]
                 )
+            sender.completed_streams.append(stream_id)
 
 
 def register():
