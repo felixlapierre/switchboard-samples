@@ -37,7 +37,7 @@ class Receiver:
             r = requests.post(DEVICE_ENDPOINT, json=device_payload)
             decoder_payload = {
                 "serialNumber": self.serial_number,
-                "inputs": [
+                "input": [
                     {
                         "channel": {
                             "name": "Sample Receiver Channel 1",
@@ -47,7 +47,7 @@ class Receiver:
                 ],
             }
             r = requests.post(DECODER_ENDPOINT, json=decoder_payload)
-            if r.status_code == 201:
+            if r.status_code == 200:
                 return f"Decoder with serial number {self.serial_number} has been successfully registered."
         else:
             return "Decoder already registered!"

@@ -21,7 +21,7 @@ def receive(ip):
         r = requests.post(DEVICE_ENDPOINT, json=device_payload)
         decoder_payload = {"serialNumber": RECEIVER_SERIAL_NUMBER}
         r = requests.post(DECODER_ENDPOINT, json=decoder_payload)
-        if r.status_code == 201:
+        if r.status_code == 200:
             click.echo(
                 f"Decoder with serial number {RECEIVER_SERIAL_NUMBER} has been successfully registered."
             )

@@ -22,7 +22,7 @@ def send(file, ip):
         r = requests.post(DEVICE_ENDPOINT, json=device_payload)
         encoder_payload = {"serialNumber": SENDER_SERIAL_NUMBER}
         r = requests.post(ENCODER_ENDPOINT, json=encoder_payload)
-        if r.status_code == 201:
+        if r.status_code == 200:
             click.echo(
                 f"Encoder with serial number {SENDER_SERIAL_NUMBER} has been successfully registered."
             )
