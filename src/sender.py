@@ -30,7 +30,7 @@ class Sender:
         if response.status_code == 404:
             device_payload = {
                 "serialNumber": self.serial_number,
-                "ipAddress": "127.0.0.1",
+                "privateIpAddress": "127.0.0.1",
                 "displayName": self.display_name,
                 "status": "Running",
             }
