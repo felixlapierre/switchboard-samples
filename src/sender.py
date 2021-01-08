@@ -68,7 +68,9 @@ class Sender:
                 stream_info["outputChannel"]["encoder"]["serialNumber"]
                 == self.serial_number
             ):
-                ip = stream_info["inputChannel"]["decoder"]["device"]["ipAddress"]
+                ip = stream_info["inputChannel"]["decoder"]["device"][
+                    "privateIpAddress"
+                ]
                 port = stream_info["inputChannel"]["port"]
                 return (ip, port)
             else:
