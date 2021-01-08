@@ -35,7 +35,6 @@ def receive():
                 subprocess.Popen(
                     [
                         "ffplay",
-                        "-autoexit",
                         "-v",
                         "warning",
                         f"srt://{ip}:{port}?mode=listener",
