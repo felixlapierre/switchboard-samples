@@ -21,7 +21,7 @@ def poll():
         sender.get_streams()
 
 
-def send():
+def send_file():
     global continue_sending
     continue_sending = True
     while continue_sending:
@@ -45,6 +45,36 @@ def send():
                         "mpegts",
                         "-v",
                         "warning",
+                        f"srt://{ip}:{port}?pkt_size=1316",
+                    ]
+                )
+            sender.completed_streams.append(stream_id)
+
+
+def send_cam():
+    global continue_sending
+    continue_sending = True
+    webcam = "HD WebCam"
+    while continue_sending:
+        if sender.pending_streams:
+            print(
+                f"Pending Streams: {sender.pending_streams}, Completed Streams: {sender.completed_streams}"
+            )
+            stream_id = sender.pending_streams.pop(0)
+            ip, port = sender.consume_stream(stream_id)
+            if ip and port:
+                # To give time for receiver to start
+                # Need to find a more elegant solution in the future
+                time.sleep(3)
+                subprocess.Popen(
+                    [
+                        "ffmpeg",
+                        "-f",
+                        "dshow",
+                        "-i",
+                        f"video={webcam}",
+                        "-f",
+                        "mpegts",
                         f"srt://{ip}:{port}?pkt_size=1316",
                     ]
                 )
@@ -75,12 +105,16 @@ def browse():
 
 
 def start():
-    input_file = choose_file_entry.get()
-    if not is_valid_file(input_file):
-        messagebox.showerror("Error", "Invalid file type.")
-        return
-    Thread(target=poll).start()
-    Thread(target=send).start()
+    if camera_selection.get() == 1:
+        Thread(target=poll).start()
+        Thread(target=send_cam).start()
+    else:
+        input_file = choose_file_entry.get()
+        if not is_valid_file(input_file):
+            messagebox.showerror("Error", "Invalid file type.")
+            return
+        Thread(target=poll).start()
+        Thread(target=send_file).start()
 
 
 def is_valid_file(input_file):
@@ -157,7 +191,7 @@ streaming_label_frame = LabelFrame(
     root, text="Streaming Instructions", font=default_font, borderwidth=4
 )
 choose_file_label = Label(
-    streaming_label_frame, text="File", font=default_font, width=10
+    streaming_label_frame, text="File", font=default_font, width=13
 )
 choose_file_entry = Entry(streaming_label_frame, width=40, font=default_font)
 browse_button = Button(
@@ -166,6 +200,14 @@ browse_button = Button(
     font=default_font,
     width=20,
     command=browse,
+)
+camera_label = Label(
+    streaming_label_frame, text="Use Camera", font=default_font, width=13
+)
+camera_selection = IntVar()
+camera_checkbox = Checkbutton(
+    streaming_label_frame,
+    variable=camera_selection,
 )
 start_button = Button(
     streaming_label_frame,
@@ -189,6 +231,8 @@ streaming_label_frame.pack(expand="yes", fill="both")
 choose_file_label.grid(row=0, column=0)
 choose_file_entry.grid(row=0, column=1)
 browse_button.grid(row=0, column=2, padx=20, pady=5)
+camera_label.grid(row=3, column=0)
+camera_checkbox.grid(sticky="W", row=3, column=1)
 start_button.grid(row=3, column=2, pady=10)
 
 root.protocol("WM_DELETE_WINDOW", on_close_window)
