@@ -1,5 +1,6 @@
 # switchboard-samples
-Sample senders and receivers to be used with the Switchboard project. https://github.com/felixlapierre/switchboard
+Sample senders and receivers to be used with the Switchboard project.
+https://github.com/felixlapierre/switchboard
 
 # Requirements
 * [Python](https://www.python.org) 3.7.3+
