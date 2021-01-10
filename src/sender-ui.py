@@ -1,4 +1,4 @@
-import ipaddress, subprocess, time
+import ipaddress, subprocess, time, json
 from tkinter import *
 from tkinter import filedialog, messagebox
 from sender import Sender
@@ -54,7 +54,9 @@ def send_file():
 def send_cam():
     global continue_sending
     continue_sending = True
-    webcam = "HD WebCam"
+    with open("config.json") as json_config:
+        config = json.load(json_config)
+    webcam = config["camera"]["name"]
     while continue_sending:
         if sender.pending_streams:
             print(
