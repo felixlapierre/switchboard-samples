@@ -77,6 +77,8 @@ def send_cam():
                         f"video={webcam}",
                         "-f",
                         "mpegts",
+                        "-v",
+                        "warning",
                         f"srt://{ip}:{port}?pkt_size=1316",
                     ]
                 )
