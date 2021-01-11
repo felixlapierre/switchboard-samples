@@ -71,7 +71,7 @@ class Receiver:
                 ip = stream_info["outputChannel"]["encoder"]["device"][
                     "privateIpAddress"
                 ]
-                port = stream_info["inputChannel"]["port"]
+                port = stream_info["inputChannel"]["channel"]["port"]
                 return (ip, port)
             else:
                 return (None, None)
