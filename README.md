@@ -15,8 +15,10 @@ https://github.com/felixlapierre/switchboard
 2. Change directory to src  
 `cd src`
 
-3. Edit the configuration file if necessary  
+3. Edit the configuration file to choose which camera to use
 `vi config.json`
+    * To list all available video devices, run the following command:
+    `ffmpeg -list_devices true -f dshow -i dummy`
 
 4. Run the video receiver  
 `python receiver-ui.py`
