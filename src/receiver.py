@@ -53,25 +53,26 @@ class Receiver:
             return "Decoder already registered!"
 
     def get_streams(self):
-        response = requests.get(STREAM_ENDPOINT)
+        response = requests.get(f"{DECODER_ENDPOINT}/{self.serial_number}/streams")
         if response.status_code == 200:
             streams = response.json()
-            for id in streams:
-                if id not in self.pending_streams and id not in self.completed_streams:
-                    self.pending_streams.append(id)
+            for stream in streams:
+                new_stream_found = True
+                for s in self.pending_streams:
+                    if stream["id"] == s["id"]:
+                        new_stream_found = False
+                for s in self.completed_streams:
+                    if stream["id"] == s["id"]:
+                        new_stream_found = False
+                if new_stream_found:
+                    self.pending_streams.append(stream)
 
-    def consume_stream(self, id):
-        response = requests.get(f"{STREAM_ENDPOINT}/{id}")
-        if response.status_code == 200:
-            stream_info = response.json()
-            if (
-                stream_info["inputChannel"]["decoder"]["serialNumber"]
-                == self.serial_number
-            ):
-                ip = stream_info["outputChannel"]["encoder"]["device"][
-                    "privateIpAddress"
-                ]
-                port = stream_info["inputChannel"]["channel"]["port"]
-                return (ip, port)
-            else:
-                return (None, None)
+    def consume_stream(self):
+        if self.pending_streams:
+            stream = self.pending_streams.pop(0)
+            ip = stream["outputChannel"]["encoder"]["device"]["privateIpAddress"]
+            port = stream["inputChannel"]["channel"]["port"]
+            self.completed_streams.append(stream)
+            return (ip, port)
+        else:
+            return (None, None)

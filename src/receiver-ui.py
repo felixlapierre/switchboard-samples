@@ -25,22 +25,16 @@ def receive():
     global continue_receiving
     continue_receiving = True
     while continue_receiving:
-        if receiver.pending_streams:
-            print(
-                f"Pending Streams: {receiver.pending_streams}, Completed Streams: {receiver.completed_streams}"
+        ip, port = receiver.consume_stream()
+        if ip and port:
+            subprocess.Popen(
+                [
+                    "ffplay",
+                    "-v",
+                    "warning",
+                    f"srt://{ip}:{port}?mode=listener",
+                ]
             )
-            stream_id = receiver.pending_streams.pop(0)
-            ip, port = receiver.consume_stream(stream_id)
-            if ip and port:
-                subprocess.Popen(
-                    [
-                        "ffplay",
-                        "-v",
-                        "warning",
-                        f"srt://{ip}:{port}?mode=listener",
-                    ]
-                )
-            receiver.completed_streams.append(stream_id)
 
 
 def register():

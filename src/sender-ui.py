@@ -25,30 +25,22 @@ def send_file():
     global continue_sending
     continue_sending = True
     while continue_sending:
-        if sender.pending_streams:
-            print(
-                f"Pending Streams: {sender.pending_streams}, Completed Streams: {sender.completed_streams}"
+        ip, port = sender.consume_stream()
+        if ip and port:
+            time.sleep(3)
+            subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-re",
+                    "-i",
+                    choose_file_entry.get(),
+                    "-f",
+                    "mpegts",
+                    "-v",
+                    "warning",
+                    f"srt://{ip}:{port}?pkt_size=1316",
+                ]
             )
-            stream_id = sender.pending_streams.pop(0)
-            ip, port = sender.consume_stream(stream_id)
-            if ip and port:
-                # To give time for receiver to start
-                # Need to find a more elegant solution in the future
-                time.sleep(3)
-                subprocess.Popen(
-                    [
-                        "ffmpeg",
-                        "-re",
-                        "-i",
-                        choose_file_entry.get(),
-                        "-f",
-                        "mpegts",
-                        "-v",
-                        "warning",
-                        f"srt://{ip}:{port}?pkt_size=1316",
-                    ]
-                )
-            sender.completed_streams.append(stream_id)
 
 
 def send_cam():
@@ -58,31 +50,25 @@ def send_cam():
         config = json.load(json_config)
     webcam = config["camera"]["name"]
     while continue_sending:
-        if sender.pending_streams:
-            print(
-                f"Pending Streams: {sender.pending_streams}, Completed Streams: {sender.completed_streams}"
+        ip, port = sender.consume_stream()
+        if ip and port:
+            # To give time for receiver to start
+            # Need to find a more elegant solution in the future
+            time.sleep(3)
+            subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-f",
+                    "dshow",
+                    "-i",
+                    f"video={webcam}",
+                    "-f",
+                    "mpegts",
+                    "-v",
+                    "warning",
+                    f"srt://{ip}:{port}?pkt_size=1316",
+                ]
             )
-            stream_id = sender.pending_streams.pop(0)
-            ip, port = sender.consume_stream(stream_id)
-            if ip and port:
-                # To give time for receiver to start
-                # Need to find a more elegant solution in the future
-                time.sleep(3)
-                subprocess.Popen(
-                    [
-                        "ffmpeg",
-                        "-f",
-                        "dshow",
-                        "-i",
-                        f"video={webcam}",
-                        "-f",
-                        "mpegts",
-                        "-v",
-                        "warning",
-                        f"srt://{ip}:{port}?pkt_size=1316",
-                    ]
-                )
-            sender.completed_streams.append(stream_id)
 
 
 def register():
