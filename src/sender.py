@@ -70,7 +70,13 @@ class Sender:
     def consume_stream(self) -> (str, str, bool):
         if self.pending_streams:
             stream = self.pending_streams.pop(0)
-            ip = stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
+            if (
+                stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
+                == "0:0:0:0:0:0:0:1"
+            ):
+                ip = stream["inputChannel"]["decoder"]["device"]["privateIpAddress"]
+            else:
+                ip = stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
             port = stream["inputChannel"]["channel"]["port"]
             is_rendezvous = bool(stream["isRendezvous"])
             self.completed_streams.append(stream)

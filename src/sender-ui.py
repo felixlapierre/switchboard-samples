@@ -32,7 +32,6 @@ def send(use_webcam: bool):
     webcam = config["camera"]["name"]
     while continue_sending:
         ip, port, is_rendezvous = sender.consume_stream()
-        time.sleep(0.05)
         if ip and port:
             time.sleep(3)
             if is_rendezvous:
@@ -40,15 +39,17 @@ def send(use_webcam: bool):
                     [
                         "srt-live-transmit",
                         f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
-                        f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous"
+                        f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
                     ]
                 )
-
-                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
+                ffmpeg_url = (
+                    f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
+                )
                 start_ffmpeg(use_webcam, webcam, ffmpeg_url)
             else:
                 ffmpeg_url = f"{SRT_SCHEME}://{ip}:{port}?pkt_size=1316"
                 start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+
 
 def start_ffmpeg(use_webcam: bool, webcam: str, ffmpeg_url: str):
     if use_webcam:
@@ -68,7 +69,7 @@ def start_ffmpeg_file(url: str):
             "mpegts",
             "-v",
             "warning",
-            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316",
+            url,
         ]
     )
 
@@ -85,7 +86,7 @@ def start_ffmpeg_webcam(webcam: str, url: str):
             "mpegts",
             "-v",
             "warning",
-            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316",
+            url,
         ]
     )
 

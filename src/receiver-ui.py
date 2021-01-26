@@ -29,17 +29,15 @@ def receive():
     continue_receiving = True
     while continue_receiving:
         ip, port, is_rendezvous = receiver.consume_stream()
-        time.sleep(0.05)
         if ip and port:
             if is_rendezvous:
                 subprocess.Popen(
                     [
                         "srt-live-transmit",
                         f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
-                        f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}"
+                        f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
                     ]
                 )
-
                 subprocess.Popen(
                     [
                         "ffplay",
