@@ -28,33 +28,54 @@ def receive():
     global continue_receiving
     continue_receiving = True
     while continue_receiving:
-        ip, port, is_rendezvous = receiver.consume_stream()
+        check_status()
+        stream_id, ip, port, is_rendezvous = receiver.consume_stream()
         if ip and port:
             if is_rendezvous:
-                subprocess.Popen(
-                    [
-                        "srt-live-transmit",
-                        f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
-                        f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
-                    ]
-                )
-                subprocess.Popen(
-                    [
-                        "ffplay",
-                        "-v",
-                        "warning",
-                        f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
-                    ]
+                receiver.processes[stream_id] = [
+                    subprocess.Popen(
+                        [
+                            "srt-live-transmit",
+                            f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                        ]
+                    )
+                ]
+                receiver.processes[stream_id].insert(
+                    0,
+                    subprocess.Popen(
+                        [
+                            "ffplay",
+                            "-v",
+                            "warning",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                        ]
+                    ),
                 )
             else:
-                subprocess.Popen(
-                    [
-                        "ffplay",
-                        "-v",
-                        "warning",
-                        f"{SRT_SCHEME}://{ip}:{port}?mode=listener",
-                    ]
-                )
+                receiver.processes[stream_id] = [
+                    subprocess.Popen(
+                        [
+                            "ffplay",
+                            "-v",
+                            "warning",
+                            f"{SRT_SCHEME}://{ip}:{port}?mode=listener",
+                        ]
+                    )
+                ]
+
+
+def check_status():
+    stream_ids = list(receiver.processes.keys())
+    for stream_id in stream_ids:
+        stream_deleted = True
+        for stream in receiver.streams:
+            if stream["id"] == int(stream_id):
+                stream_deleted = False
+        if stream_deleted:
+            for process in receiver.processes[stream_id]:
+                process.terminate()
+                del receiver.processes[stream_id]
 
 
 def register():
@@ -76,6 +97,7 @@ def register():
 def start():
     Thread(target=poll).start()
     Thread(target=receive).start()
+    Thread(target=check_status).start()
 
 
 def is_valid_ip(ip):

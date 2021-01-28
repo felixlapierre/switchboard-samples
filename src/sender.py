@@ -14,16 +14,14 @@ class Sender:
         display_name=SENDER_DISPLAY_NAME,
         serial_number=SENDER_SERIAL_NUMBER,
         channel_port="20000",
-        pending_streams=None,
-        completed_streams=None,
+        streams=None,
+        processes=None,
     ):
         self.display_name = display_name
         self.serial_number = serial_number
         self.channel_port = channel_port
-        self.pending_streams = pending_streams if pending_streams is not None else []
-        self.completed_streams = (
-            completed_streams if completed_streams is not None else []
-        )
+        self.streams = streams if streams is not None else []
+        self.processes = processes if processes is not None else {}
 
     def register(self):
         response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")
@@ -55,31 +53,20 @@ class Sender:
     def get_streams(self):
         response = requests.get(f"{ENCODER_ENDPOINT}/{self.serial_number}/streams")
         if response.status_code == 200:
-            streams = response.json()
-            for stream in streams:
-                new_stream_found = True
-                for s in self.pending_streams:
-                    if stream["id"] == s["id"]:
-                        new_stream_found = False
-                for s in self.completed_streams:
-                    if stream["id"] == s["id"]:
-                        new_stream_found = False
-                if new_stream_found:
-                    self.pending_streams.append(stream)
+            self.streams = response.json()
 
-    def consume_stream(self) -> (str, str, bool):
-        if self.pending_streams:
-            stream = self.pending_streams.pop(0)
-            if (
-                stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
-                == "0:0:0:0:0:0:0:1"
-            ):
-                ip = stream["inputChannel"]["decoder"]["device"]["privateIpAddress"]
-            else:
-                ip = stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
-            port = stream["inputChannel"]["channel"]["port"]
-            is_rendezvous = bool(stream["isRendezvous"])
-            self.completed_streams.append(stream)
-            return (ip, port, is_rendezvous)
-        else:
-            return (None, None, None)
+    def consume_stream(self):
+        for stream in self.streams:
+            stream_id = str(stream["id"])
+            if stream_id not in self.processes:
+                if (
+                    stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
+                    == "0:0:0:0:0:0:0:1"
+                ):
+                    ip = stream["inputChannel"]["decoder"]["device"]["privateIpAddress"]
+                else:
+                    ip = stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
+                port = stream["inputChannel"]["channel"]["port"]
+                is_rendezvous = bool(stream["isRendezvous"])
+                return (stream_id, ip, port, is_rendezvous)
+        return (None, None, None, None)

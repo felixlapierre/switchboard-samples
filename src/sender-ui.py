@@ -31,35 +31,42 @@ def send(use_webcam: bool):
         config = json.load(json_config)
     webcam = config["camera"]["name"]
     while continue_sending:
-        ip, port, is_rendezvous = sender.consume_stream()
+        check_status()
+        stream_id, ip, port, is_rendezvous = sender.consume_stream()
         if ip and port:
             time.sleep(3)
             if is_rendezvous:
-                subprocess.Popen(
-                    [
-                        "srt-live-transmit",
-                        f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
-                        f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
-                    ]
-                )
+                sender.processes[stream_id] = [
+                    subprocess.Popen(
+                        [
+                            "srt-live-transmit",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
+                        ]
+                    )
+                ]
                 ffmpeg_url = (
                     f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
                 )
-                start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                sender.processes[stream_id].insert(
+                    0, start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                )
             else:
                 ffmpeg_url = f"{SRT_SCHEME}://{ip}:{port}?pkt_size=1316"
-                start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                sender.processes[stream_id] = [
+                    start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                ]
 
 
 def start_ffmpeg(use_webcam: bool, webcam: str, ffmpeg_url: str):
     if use_webcam:
-        start_ffmpeg_webcam(webcam, ffmpeg_url)
+        return start_ffmpeg_webcam(webcam, ffmpeg_url)
     else:
-        start_ffmpeg_file(ffmpeg_url)
+        return start_ffmpeg_file(ffmpeg_url)
 
 
 def start_ffmpeg_file(url: str):
-    subprocess.Popen(
+    return subprocess.Popen(
         [
             "ffmpeg",
             "-re",
@@ -75,7 +82,7 @@ def start_ffmpeg_file(url: str):
 
 
 def start_ffmpeg_webcam(webcam: str, url: str):
-    subprocess.Popen(
+    return subprocess.Popen(
         [
             "ffmpeg",
             "-f",
@@ -89,6 +96,19 @@ def start_ffmpeg_webcam(webcam: str, url: str):
             url,
         ]
     )
+
+
+def check_status():
+    stream_ids = list(sender.processes.keys())
+    for stream_id in stream_ids:
+        stream_deleted = True
+        for stream in sender.streams:
+            if stream["id"] == int(stream_id):
+                stream_deleted = False
+        if stream_deleted:
+            for process in sender.processes[stream_id]:
+                process.terminate()
+                del sender.processes[stream_id]
 
 
 def register():
