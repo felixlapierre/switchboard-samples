@@ -97,7 +97,6 @@ def register():
 def start():
     Thread(target=poll).start()
     Thread(target=receive).start()
-    Thread(target=check_status).start()
 
 
 def is_valid_ip(ip):
