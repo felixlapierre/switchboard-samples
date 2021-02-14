@@ -47,7 +47,7 @@ def receive():
                         [
                             "ffplay",
                             "-v",
-                            "warning",
+                            "fatal",
                             f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
                         ]
                     ),
@@ -58,7 +58,7 @@ def receive():
                         [
                             "ffplay",
                             "-v",
-                            "warning",
+                            "fatal",
                             f"{SRT_SCHEME}://{ip}:{port}?mode=listener",
                         ]
                     )
@@ -68,13 +68,23 @@ def receive():
 def check_status():
     stream_ids = list(receiver.processes.keys())
     for stream_id in stream_ids:
-        stream_deleted = True
-        for stream in receiver.streams:
-            if stream["id"] == int(stream_id):
-                stream_deleted = False
-        if stream_deleted:
+        # First, check if stream has been manually closed
+        if receiver.processes[stream_id][0].poll() is not None:
             for process in receiver.processes[stream_id]:
                 process.terminate()
+            del receiver.processes[stream_id]
+            print(
+                f"Detected manually closed stream with id {stream_id}. Removing from service."
+            )
+            receiver.delete_stream(stream_id)
+        else:
+            stream_deleted = True
+            for stream in receiver.streams:
+                if stream["id"] == int(stream_id):
+                    stream_deleted = False
+            if stream_deleted:
+                for process in receiver.processes[stream_id]:
+                    process.terminate()
                 del receiver.processes[stream_id]
 
 

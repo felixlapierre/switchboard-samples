@@ -75,7 +75,7 @@ def start_ffmpeg_file(url: str):
             "-f",
             "mpegts",
             "-v",
-            "warning",
+            "fatal",
             url,
         ]
     )
@@ -92,7 +92,7 @@ def start_ffmpeg_webcam(webcam: str, url: str):
             "-f",
             "mpegts",
             "-v",
-            "warning",
+            "fatal",
             url,
         ]
     )
@@ -108,7 +108,7 @@ def check_status():
         if stream_deleted:
             for process in sender.processes[stream_id]:
                 process.terminate()
-                del sender.processes[stream_id]
+            del sender.processes[stream_id]
 
 
 def register():

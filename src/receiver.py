@@ -72,3 +72,10 @@ class Receiver:
                 is_rendezvous = bool(stream["isRendezvous"])
                 return (stream_id, ip, port, is_rendezvous)
         return (None, None, None, None)
+
+    def delete_stream(self, stream_id):
+        r = requests.delete(f"{STREAM_ENDPOINT}/{stream_id}")
+        if r.status_code == 200:
+            return True
+        else:
+            return False
