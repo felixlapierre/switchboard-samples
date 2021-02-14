@@ -73,9 +73,6 @@ def check_status():
             for process in receiver.processes[stream_id]:
                 process.terminate()
             del receiver.processes[stream_id]
-            print(
-                f"Detected manually closed stream with id {stream_id}. Removing from service."
-            )
             receiver.delete_stream(stream_id)
         else:
             stream_deleted = True
