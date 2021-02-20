@@ -5,7 +5,7 @@ from constants import SRT_SCHEME, LOCAL_HOST, UDP_SCHEME
 from sender import Sender
 from threading import Thread
 
-INTERNAL_PORT = 5002
+INTERNAL_PORT = 5000
 
 
 def on_close_window():
@@ -55,6 +55,7 @@ def send(use_webcam):
                 sender.processes[stream_id].insert(
                     0, start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port)
                 )
+                INTERNAL_PORT += 1
             else:
                 ffmpeg_url = f"{SRT_SCHEME}://{ip}:{input_channel_port}?pkt_size=1316"
                 sender.processes[stream_id] = [

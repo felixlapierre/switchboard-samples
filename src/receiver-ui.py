@@ -5,7 +5,7 @@ from receiver import Receiver
 from threading import Thread
 from constants import UDP_SCHEME, LOCAL_HOST, SRT_SCHEME
 
-INTERNAL_PORT = 5001
+INTERNAL_PORT = 5000
 
 
 def on_close_window():
@@ -52,6 +52,7 @@ def receive():
                         ]
                     ),
                 )
+                INTERNAL_PORT += 1
             else:
                 receiver.processes[stream_id] = [
                     subprocess.Popen(
