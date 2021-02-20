@@ -129,11 +129,15 @@ def register():
         messagebox.showinfo("Info", return_message)
 
 
-def browse():
+def browse(file):
     root.filename = filedialog.askopenfilename(initialdir="/", title="Select File")
     if root.filename:
-        choose_file_entry.delete(0, "end")
-        choose_file_entry.insert(0, root.filename)
+        if file == 1:
+            choose_file_1_entry.delete(0, "end")
+            choose_file_1_entry.insert(0, root.filename)
+        else:
+            choose_file_2_entry.delete(0, "end")
+            choose_file_2_entry.insert(0, root.filename)
 
 
 def start():
@@ -141,8 +145,12 @@ def start():
         Thread(target=poll).start()
         Thread(target=send, args=(True,)).start()
     else:
-        input_file = choose_file_entry.get()
-        if not is_valid_file(input_file):
+        input_file_1 = choose_file_1_entry.get()
+        input_file_2 = choose_file_2_entry.get()
+        if not input_file_1 or not input_file_2:
+            messagebox.showerror("Error", "Missing one or both files.")
+            return
+        if not is_valid_file(input_file_1) or not is_valid_file(input_file_2):
             messagebox.showerror("Error", "Invalid file type.")
             return
         Thread(target=poll).start()
@@ -227,16 +235,27 @@ register_button = Button(
 streaming_label_frame = LabelFrame(
     root, text="Streaming Instructions", font=default_font, borderwidth=4
 )
-choose_file_label = Label(
-    streaming_label_frame, text="File", font=default_font, width=13
+choose_file_1_label = Label(
+    streaming_label_frame, text="File 1", font=default_font, width=13
 )
-choose_file_entry = Entry(streaming_label_frame, width=40, font=default_font)
-browse_button = Button(
+choose_file_1_entry = Entry(streaming_label_frame, width=40, font=default_font)
+browse_button_1 = Button(
     streaming_label_frame,
     text="Browse",
     font=default_font,
     width=20,
-    command=browse,
+    command=lambda: browse(1),
+)
+choose_file_2_label = Label(
+    streaming_label_frame, text="File 2", font=default_font, width=13
+)
+choose_file_2_entry = Entry(streaming_label_frame, width=40, font=default_font)
+browse_button_2 = Button(
+    streaming_label_frame,
+    text="Browse",
+    font=default_font,
+    width=20,
+    command=lambda: browse(2),
 )
 camera_label = Label(
     streaming_label_frame, text="Use Camera", font=default_font, width=13
@@ -267,9 +286,12 @@ channel_2_port_label.grid(row=3, column=0)
 channel_2_port_entry.grid(row=3, column=1)
 register_button.grid(row=0, column=2, rowspan=2, padx=20, pady=5)
 streaming_label_frame.pack(expand="yes", fill="both")
-choose_file_label.grid(row=0, column=0)
-choose_file_entry.grid(row=0, column=1)
-browse_button.grid(row=0, column=2, padx=20, pady=5)
+choose_file_1_label.grid(row=0, column=0)
+choose_file_1_entry.grid(row=0, column=1)
+browse_button_1.grid(row=0, column=2, padx=20, pady=5)
+choose_file_2_label.grid(row=1, column=0)
+choose_file_2_entry.grid(row=1, column=1)
+browse_button_2.grid(row=1, column=2, padx=20, pady=5)
 camera_label.grid(row=3, column=0)
 camera_checkbox.grid(sticky="W", row=3, column=1)
 start_button.grid(row=3, column=2, pady=10)
