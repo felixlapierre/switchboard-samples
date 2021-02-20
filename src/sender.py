@@ -13,13 +13,15 @@ class Sender:
         self,
         display_name=SENDER_DISPLAY_NAME,
         serial_number=SENDER_SERIAL_NUMBER,
-        channel_port="20000",
+        channel_1_port="20000",
+        channel_2_port="20001",
         streams=None,
         processes=None,
     ):
         self.display_name = display_name
         self.serial_number = serial_number
-        self.channel_port = channel_port
+        self.channel_1_port = channel_1_port
+        self.channel_2_port = channel_2_port
         self.streams = streams if streams is not None else []
         self.processes = processes if processes is not None else {}
 
@@ -39,9 +41,15 @@ class Sender:
                     {
                         "channel": {
                             "name": "Sample Sender Channel 1",
-                            "port": self.channel_port,
+                            "port": self.channel_1_port,
                         }
-                    }
+                    },
+                    {
+                        "channel": {
+                            "name": "Sample Sender Channel 2",
+                            "port": self.channel_2_port,
+                        }
+                    },
                 ],
             }
             r = requests.post(ENCODER_ENDPOINT, json=encoder_payload)

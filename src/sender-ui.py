@@ -114,12 +114,14 @@ def check_status():
 def register():
     sender.display_name = display_name_entry.get()
     sender.serial_number = serial_number_entry.get()
-    channel_port = channel_port_entry.get()
-    if not is_valid_port(channel_port):
+    channel_1_port = channel_1_port_entry.get()
+    channel_2_port = channel_2_port_entry.get()
+    if not is_valid_port(channel_1_port) or not is_valid_port(channel_2_port):
         messagebox.showerror("Error", "Invalid port.")
         return
     else:
-        sender.channel_port = channel_port
+        sender.channel_1_port = channel_1_port
+        sender.channel_2_port = channel_2_port
     return_message = sender.register()
     if return_message == "Encoder already registered!":
         messagebox.showerror("Error", return_message)
@@ -202,11 +204,16 @@ serial_number_label = Label(
 )
 serial_number_entry = Entry(registration_label_frame, width=30, font=default_font)
 serial_number_entry.insert(0, sender.serial_number)
-channel_port_label = Label(
-    registration_label_frame, text="Channel Port", width=20, font=default_font
+channel_1_port_label = Label(
+    registration_label_frame, text="Channel 1 Port", width=20, font=default_font
 )
-channel_port_entry = Entry(registration_label_frame, width=30, font=default_font)
-channel_port_entry.insert(0, sender.channel_port)
+channel_1_port_entry = Entry(registration_label_frame, width=30, font=default_font)
+channel_1_port_entry.insert(0, sender.channel_1_port)
+channel_2_port_label = Label(
+    registration_label_frame, text="Channel 2 Port", width=20, font=default_font
+)
+channel_2_port_entry = Entry(registration_label_frame, width=30, font=default_font)
+channel_2_port_entry.insert(0, sender.channel_2_port)
 register_button = Button(
     registration_label_frame,
     text="Register",
@@ -254,8 +261,10 @@ display_name_label.grid(row=0, column=0)
 display_name_entry.grid(row=0, column=1, pady=10)
 serial_number_label.grid(row=1, column=0)
 serial_number_entry.grid(row=1, column=1)
-channel_port_label.grid(row=2, column=0)
-channel_port_entry.grid(row=2, column=1, pady=10)
+channel_1_port_label.grid(row=2, column=0)
+channel_1_port_entry.grid(row=2, column=1, pady=10)
+channel_2_port_label.grid(row=3, column=0)
+channel_2_port_entry.grid(row=3, column=1)
 register_button.grid(row=0, column=2, rowspan=2, padx=20, pady=5)
 streaming_label_frame.pack(expand="yes", fill="both")
 choose_file_label.grid(row=0, column=0)
