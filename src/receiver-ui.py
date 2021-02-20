@@ -137,9 +137,7 @@ receiver = Receiver()
 default_font = ("TkDefaultFont", 12)
 
 # Registration section elements
-registration_label_frame = LabelFrame(
-    root, text="Registration", font=default_font, borderwidth=4
-)
+registration_label_frame = LabelFrame(root, text="Registration", font=default_font, borderwidth=4)
 display_name_label = Label(
     registration_label_frame, text="Display Name", font=default_font, width=20
 )

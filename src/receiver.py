@@ -71,9 +71,7 @@ class Receiver:
                     stream["outputChannel"]["encoder"]["device"]["publicIpAddress"]
                     == "0:0:0:0:0:0:0:1"
                 ):
-                    ip = stream["outputChannel"]["encoder"]["device"][
-                        "privateIpAddress"
-                    ]
+                    ip = stream["outputChannel"]["encoder"]["device"]["privateIpAddress"]
                 else:
                     ip = stream["outputChannel"]["encoder"]["device"]["publicIpAddress"]
                 port = stream["inputChannel"]["channel"]["port"]

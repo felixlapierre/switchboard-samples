@@ -74,7 +74,14 @@ class Sender:
                     ip = stream["inputChannel"]["decoder"]["device"]["privateIpAddress"]
                 else:
                     ip = stream["inputChannel"]["decoder"]["device"]["publicIpAddress"]
-                port = stream["inputChannel"]["channel"]["port"]
+                output_channel_port = stream["outputChannel"]["channel"]["port"]
+                input_channel_port = stream["inputChannel"]["channel"]["port"]
                 is_rendezvous = bool(stream["isRendezvous"])
-                return (stream_id, ip, port, is_rendezvous)
-        return (None, None, None, None)
+                return (
+                    stream_id,
+                    ip,
+                    output_channel_port,
+                    input_channel_port,
+                    is_rendezvous,
+                )
+        return (None, None, None, None, None)

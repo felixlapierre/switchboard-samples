@@ -24,7 +24,7 @@ def poll():
         sender.get_streams()
 
 
-def send(use_webcam: bool):
+def send(use_webcam):
     global continue_sending
     continue_sending = True
     with open("config.json") as json_config:
@@ -32,8 +32,14 @@ def send(use_webcam: bool):
     webcam = config["camera"]["name"]
     while continue_sending:
         check_status()
-        stream_id, ip, port, is_rendezvous = sender.consume_stream()
-        if ip and port:
+        (
+            stream_id,
+            ip,
+            output_channel_port,
+            input_channel_port,
+            is_rendezvous,
+        ) = sender.consume_stream()
+        if ip and input_channel_port:
             time.sleep(3)
             if is_rendezvous:
                 sender.processes[stream_id] = [
@@ -41,37 +47,39 @@ def send(use_webcam: bool):
                         [
                             "srt-live-transmit",
                             f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
-                            f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
+                            f"{SRT_SCHEME}://{ip}:{input_channel_port}?mode=rendezvous",
                         ]
                     )
                 ]
-                ffmpeg_url = (
-                    f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
-                )
+                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
                 sender.processes[stream_id].insert(
-                    0, start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                    0, start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port)
                 )
             else:
-                ffmpeg_url = f"{SRT_SCHEME}://{ip}:{port}?pkt_size=1316"
+                ffmpeg_url = f"{SRT_SCHEME}://{ip}:{input_channel_port}?pkt_size=1316"
                 sender.processes[stream_id] = [
-                    start_ffmpeg(use_webcam, webcam, ffmpeg_url)
+                    start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port)
                 ]
 
 
-def start_ffmpeg(use_webcam: bool, webcam: str, ffmpeg_url: str):
+def start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port):
     if use_webcam:
         return start_ffmpeg_webcam(webcam, ffmpeg_url)
     else:
-        return start_ffmpeg_file(ffmpeg_url)
+        return start_ffmpeg_file(ffmpeg_url, output_channel_port)
 
 
-def start_ffmpeg_file(url: str):
+def start_ffmpeg_file(url, port):
+    if port == int(sender.channel_1_port):
+        file = choose_file_1_entry.get()
+    else:
+        file = choose_file_2_entry.get()
     return subprocess.Popen(
         [
             "ffmpeg",
             "-re",
             "-i",
-            choose_file_entry.get(),
+            file,
             "-f",
             "mpegts",
             "-v",
@@ -81,7 +89,7 @@ def start_ffmpeg_file(url: str):
     )
 
 
-def start_ffmpeg_webcam(webcam: str, url: str):
+def start_ffmpeg_webcam(webcam, url):
     return subprocess.Popen(
         [
             "ffmpeg",
@@ -193,9 +201,7 @@ sender = Sender()
 default_font = ("TkDefaultFont", 12)
 
 # Registration section elements
-registration_label_frame = LabelFrame(
-    root, text="Registration", font=default_font, borderwidth=4
-)
+registration_label_frame = LabelFrame(root, text="Registration", font=default_font, borderwidth=4)
 display_name_label = Label(
     registration_label_frame,
     text="Display Name",
@@ -235,9 +241,7 @@ register_button = Button(
 streaming_label_frame = LabelFrame(
     root, text="Streaming Instructions", font=default_font, borderwidth=4
 )
-choose_file_1_label = Label(
-    streaming_label_frame, text="File 1", font=default_font, width=13
-)
+choose_file_1_label = Label(streaming_label_frame, text="File 1", font=default_font, width=13)
 choose_file_1_entry = Entry(streaming_label_frame, width=40, font=default_font)
 browse_button_1 = Button(
     streaming_label_frame,
@@ -246,9 +250,7 @@ browse_button_1 = Button(
     width=20,
     command=lambda: browse(1),
 )
-choose_file_2_label = Label(
-    streaming_label_frame, text="File 2", font=default_font, width=13
-)
+choose_file_2_label = Label(streaming_label_frame, text="File 2", font=default_font, width=13)
 choose_file_2_entry = Entry(streaming_label_frame, width=40, font=default_font)
 browse_button_2 = Button(
     streaming_label_frame,
@@ -257,9 +259,7 @@ browse_button_2 = Button(
     width=20,
     command=lambda: browse(2),
 )
-camera_label = Label(
-    streaming_label_frame, text="Use Camera", font=default_font, width=13
-)
+camera_label = Label(streaming_label_frame, text="Use Camera", font=default_font, width=13)
 camera_selection = IntVar()
 camera_checkbox = Checkbutton(
     streaming_label_frame,
