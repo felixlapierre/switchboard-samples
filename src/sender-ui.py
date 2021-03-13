@@ -72,9 +72,15 @@ def start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port):
 
 def start_ffmpeg_file(url, port):
     if port == int(sender.channel_1_port):
-        file = choose_file_1_entry.get()
+        if choose_file_1_entry.get():
+            file = choose_file_1_entry.get()
+        else:
+            file = choose_file_2_entry.get()
     else:
-        file = choose_file_2_entry.get()
+        if choose_file_2_entry.get():
+            file = choose_file_2_entry.get()
+        else:
+            file = choose_file_1_entry.get()
     return subprocess.Popen(
         [
             "ffmpeg",
@@ -156,14 +162,18 @@ def start():
     else:
         input_file_1 = choose_file_1_entry.get()
         input_file_2 = choose_file_2_entry.get()
-        if not input_file_1 or not input_file_2:
-            messagebox.showerror("Error", "Missing one or both files.")
+        if not input_file_1 and not input_file_2:
+            messagebox.showerror("Error", "Need to select at least one file.")
             return
-        if not is_valid_file(input_file_1) or not is_valid_file(input_file_2):
+        file1_valid = is_valid_file(input_file_1) and not input_file_2
+        file2_valid = is_valid_file(input_file_2) and not input_file_1
+        both_valid = is_valid_file(input_file_1) and is_valid_file(input_file_2)
+        if file1_valid or file2_valid or both_valid:
+            Thread(target=poll).start()
+            Thread(target=send, args=(False,)).start()
+        else:
             messagebox.showerror("Error", "Invalid file type.")
             return
-        Thread(target=poll).start()
-        Thread(target=send, args=(False,)).start()
 
 
 def is_valid_file(input_file):
