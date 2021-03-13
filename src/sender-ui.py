@@ -173,7 +173,6 @@ def start():
             Thread(target=send, args=(False,)).start()
         else:
             messagebox.showerror("Error", "Invalid file type.")
-            return
 
 
 def is_valid_file(input_file):
