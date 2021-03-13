@@ -1,5 +1,7 @@
 {
     "camera": {
         "name": "HD WebCam"
-    }
+    },
+    "username": "admin",
+    "password": "admin"
 }

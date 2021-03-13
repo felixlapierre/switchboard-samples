@@ -11,8 +11,9 @@ DEVICE_ENDPOINT = "http://localhost:8080/device"
 ENCODER_ENDPOINT = "http://localhost:8080/encoder"
 DECODER_ENDPOINT = "http://localhost:8080/decoder"
 STREAM_ENDPOINT = "http://localhost:8080/stream"
+AUTH_ENDPOINT = "http://localhost:8080/auth/token"
 
-#Streaming
+# Streaming
 SRT_SCHEME = "srt"
 UDP_SCHEME = "udp"
 LOCAL_HOST = "127.0.0.1"

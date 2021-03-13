@@ -1,10 +1,11 @@
-import requests
+import requests, json
 from constants import (
     DEVICE_ENDPOINT,
     DECODER_ENDPOINT,
     RECEIVER_DISPLAY_NAME,
     RECEIVER_SERIAL_NUMBER,
     STREAM_ENDPOINT,
+    AUTH_ENDPOINT,
 )
 
 
@@ -17,6 +18,7 @@ class Receiver:
         channel_2_port="20003",
         streams=None,
         processes=None,
+        jwt=None,
     ):
         self.display_name = display_name
         self.serial_number = serial_number
@@ -24,9 +26,10 @@ class Receiver:
         self.channel_2_port = channel_2_port
         self.streams = streams if streams is not None else []
         self.processes = processes if processes is not None else {}
+        self.jwt = jwt
 
     def register(self):
-        response = requests.get(f"{DEVICE_ENDPOINT}/{self.serial_number}")
+        response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")
         if response.status_code == 404:
             device_payload = {
                 "serialNumber": self.serial_number,
@@ -34,7 +37,7 @@ class Receiver:
                 "displayName": self.display_name,
                 "status": "Running",
             }
-            r = requests.post(DEVICE_ENDPOINT, json=device_payload)
+            r = self.request("post", DEVICE_ENDPOINT, device_payload)
             decoder_payload = {
                 "serialNumber": self.serial_number,
                 "input": [
@@ -52,14 +55,16 @@ class Receiver:
                     },
                 ],
             }
-            r = requests.post(DECODER_ENDPOINT, json=decoder_payload)
+            r = self.request("post", DECODER_ENDPOINT, decoder_payload)
             if r.status_code == 200:
                 return f"Decoder with serial number {self.serial_number} has been successfully registered."
+        elif response.status_code == 403:
+            return "Invalid credentials or JWT token. Try again."
         else:
             return "Decoder already registered!"
 
     def get_streams(self):
-        response = requests.get(f"{DECODER_ENDPOINT}/{self.serial_number}/streams")
+        response = self.request("get", f"{DECODER_ENDPOINT}/{self.serial_number}/streams")
         if response.status_code == 200:
             self.streams = response.json()
 
@@ -80,8 +85,31 @@ class Receiver:
         return (None, None, None, None)
 
     def delete_stream(self, stream_id):
-        r = requests.delete(f"{STREAM_ENDPOINT}/{stream_id}")
+        r = self.request("delete", f"{STREAM_ENDPOINT}/{stream_id}")
         if r.status_code == 200:
             return True
         else:
             return False
+
+    def request(self, method, url, data=None):
+        if not self.jwt:
+            with open("config.json") as json_config:
+                config = json.load(json_config)
+            username = config["username"]
+            password = config["password"]
+            response = requests.get(AUTH_ENDPOINT, auth=(username, password))
+            if response.status_code == 403:
+                # Invalid Credentials
+                return response
+            self.jwt = response.headers["Authorization"]
+        auth_header = {"Authorization": self.jwt}
+        if method == "get":
+            response = requests.get(url, headers=auth_header)
+        elif method == "post":
+            response = requests.post(url, json=data, headers=auth_header)
+        else:
+            response = requests.delete(url, headers=auth_header)
+        if response.status_code == 403:
+            # Set to None so next time we re-authenticate (token most likely expired)
+            self.jwt = None
+        return response
