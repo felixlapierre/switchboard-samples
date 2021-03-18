@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 from receiver import Receiver
 from threading import Thread
 from constants import UDP_SCHEME, LOCAL_HOST, SRT_SCHEME
+from pathlib import Path
 
 INTERNAL_PORT = 5000
 
@@ -13,6 +14,7 @@ def on_close_window():
     continue_polling = False
     global continue_receiving
     continue_receiving = False
+    path_to_stats.rmdir()
     root.destroy()
 
 
@@ -135,6 +137,8 @@ root.title("Switchboard - Sample Receiver")
 root.geometry("800x400")
 root.iconphoto(True, PhotoImage(file=r"public/bean.png"))
 receiver = Receiver()
+path_to_stats = Path.cwd() / "stats"
+path_to_stats.mkdir()
 default_font = ("TkDefaultFont", 12)
 
 # Registration section elements
