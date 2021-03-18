@@ -38,6 +38,13 @@ def receive():
                     subprocess.Popen(
                         [
                             "srt-live-transmit",
+                            "-statsout",
+                            f"stats\{stream_id}-stats.json",
+                            "-pf",
+                            "json",
+                            "-s",
+                            "100",
+                            "-f",
                             f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
                             f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
                         ]
