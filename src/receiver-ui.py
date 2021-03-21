@@ -1,4 +1,4 @@
-import ipaddress, subprocess, time
+import ipaddress, subprocess, time, json
 from tkinter import *
 from tkinter import filedialog, messagebox
 from receiver import Receiver
@@ -10,8 +10,6 @@ INTERNAL_PORT = 5000
 
 
 def on_close_window():
-    global continue_polling
-    continue_polling = False
     global continue_receiving
     continue_receiving = False
     path_to_stats.rmdir()
@@ -19,11 +17,8 @@ def on_close_window():
 
 
 def poll():
-    global continue_polling
-    continue_polling = True
-    while continue_polling:
-        time.sleep(5)
-        receiver.get_streams()
+    time.sleep(5)
+    receiver.get_streams()
 
 
 def receive():
@@ -31,6 +26,7 @@ def receive():
     continue_receiving = True
     while continue_receiving:
         check_status()
+        poll()
         stream_id, ip, port, is_rendezvous = receiver.consume_stream()
         if ip and port:
             if is_rendezvous:
@@ -61,6 +57,8 @@ def receive():
                         ]
                     ),
                 )
+                time.sleep(1)
+                Thread(target=send_statistics, args=(stream_id,)).start()
                 INTERNAL_PORT += 1
             else:
                 receiver.processes[stream_id] = [
@@ -95,6 +93,58 @@ def check_status():
                 del receiver.processes[stream_id]
 
 
+def send_statistics(stream_id):
+    # While stream is still playing
+    while stream_id in receiver.processes:
+        with open(f"stats\{stream_id}-stats.json") as json_stats:
+            data = json_stats.read()[:-2]
+        data = json.loads("[{}]".format(data))
+        # Get the most recent (cumulative) stats available
+        stats = data[-1]
+        # TODO: Newer version of srt-live-transmit outputs more stats
+        # Option #1: Process them on samples end like it's done below to fit our endpoint
+        # Option #2: Make the necessary changes in the backend instead
+        stats = {"id" if k == "sid" else k: v for k, v in stats.items()}
+        stats["id"] = stream_id
+        del stats["timepoint"]
+        del stats["send"]["packetsUnique"]
+        del stats["send"]["packetsFilterExtra"]
+        del stats["send"]["bytesUnique"]
+        del stats["send"]["sendPeriod"]
+        del stats["recv"]["packetsUnique"]
+        del stats["recv"]["packetsFilterExtra"]
+        del stats["recv"]["packetsFilterSupply"]
+        del stats["recv"]["packetsFilterLoss"]
+        del stats["recv"]["bytesUnique"]
+        # Cast to int or double
+        stats["time"] = int(stats["time"])
+        for k, v in stats["window"].items():
+            try:
+                stats["window"][k] = int(v)
+            except ValueError:
+                stats["window"][k] = float(v)
+        for k, v in stats["link"].items():
+            try:
+                stats["link"][k] = int(v)
+            except ValueError:
+                stats["link"][k] = float(v)
+        for k, v in stats["send"].items():
+            try:
+                stats["send"][k] = int(v)
+            except ValueError:
+                stats["send"][k] = float(v)
+        for k, v in stats["recv"].items():
+            try:
+                stats["recv"][k] = int(v)
+            except ValueError:
+                stats["recv"][k] = float(v)
+        receiver.send_stats(stats)
+        time.sleep(5)
+    # Delete stats file
+    p = Path.cwd() / "stats" / f"{stream_id}-stats.json"
+    p.unlink(missing_ok=True)
+
+
 def register():
     receiver.display_name = display_name_entry.get()
     receiver.serial_number = serial_number_entry.get()
@@ -114,7 +164,6 @@ def register():
 
 
 def start():
-    Thread(target=poll).start()
     Thread(target=receive).start()
 
 
