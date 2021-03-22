@@ -139,7 +139,7 @@ def send_statistics(stream_id):
             except ValueError:
                 stats["recv"][k] = float(v)
         receiver.send_stats(stats)
-        time.sleep(5)
+        time.sleep(receiver.stats_freq)
     # Delete stats file
     p = Path.cwd() / "stats" / f"{stream_id}-stats.json"
     p.unlink(missing_ok=True)

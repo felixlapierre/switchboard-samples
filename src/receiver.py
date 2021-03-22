@@ -28,6 +28,9 @@ class Receiver:
         self.streams = streams if streams is not None else []
         self.processes = processes if processes is not None else {}
         self.jwt = jwt
+        with open("config.json") as json_config:
+            config = json.load(json_config)
+        self.stats_freq = config["statistics"]["frequency"]
 
     def register(self):
         response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")
