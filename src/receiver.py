@@ -31,6 +31,7 @@ class Receiver:
         with open("config.json") as json_config:
             config = json.load(json_config)
         self.stats_freq = config["statistics"]["frequency"]
+        self.internal_port = 5000
 
     def register(self):
         response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")

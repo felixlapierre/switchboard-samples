@@ -5,8 +5,6 @@ from constants import SRT_SCHEME, LOCAL_HOST, UDP_SCHEME
 from sender import Sender
 from threading import Thread
 
-INTERNAL_PORT = 5000
-
 
 def on_close_window():
     global continue_sending
@@ -42,16 +40,16 @@ def send(use_webcam):
                     subprocess.Popen(
                         [
                             "srt-live-transmit",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{sender.internal_port}",
                             f"{SRT_SCHEME}://{ip}:{input_channel_port}?mode=rendezvous",
                         ]
                     )
                 ]
-                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
+                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{sender.internal_port}?pkt_size=1316"
                 sender.processes[stream_id].insert(
                     0, start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port)
                 )
-                INTERNAL_PORT += 1
+                sender.internal_port += 1
             else:
                 ffmpeg_url = f"{SRT_SCHEME}://{ip}:{input_channel_port}?pkt_size=1316"
                 sender.processes[stream_id] = [

@@ -6,8 +6,6 @@ from threading import Thread
 from constants import UDP_SCHEME, LOCAL_HOST, SRT_SCHEME
 from pathlib import Path
 
-INTERNAL_PORT = 5000
-
 
 def on_close_window():
     global continue_receiving
@@ -42,7 +40,7 @@ def receive():
                             "100",
                             "-f",
                             f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{receiver.internal_port}",
                         ]
                     )
                 ]
@@ -53,13 +51,13 @@ def receive():
                             "ffplay",
                             "-v",
                             "fatal",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{receiver.internal_port}",
                         ]
                     ),
                 )
                 time.sleep(1)
                 Thread(target=send_statistics, args=(stream_id,)).start()
-                INTERNAL_PORT += 1
+                receiver.internal_port += 1
             else:
                 receiver.processes[stream_id] = [
                     subprocess.Popen(
