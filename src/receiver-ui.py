@@ -15,7 +15,7 @@ def on_close_window():
 
 
 def poll():
-    time.sleep(5)
+    time.sleep(3)
     receiver.get_streams()
 
 
@@ -23,8 +23,8 @@ def receive():
     global continue_receiving
     continue_receiving = True
     while continue_receiving:
-        check_status()
         poll()
+        check_status()
         stream_id, ip, port, is_rendezvous = receiver.consume_stream()
         if ip and port:
             if is_rendezvous:

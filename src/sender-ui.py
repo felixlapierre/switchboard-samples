@@ -13,7 +13,7 @@ def on_close_window():
 
 
 def poll():
-    time.sleep(5)
+    time.sleep(3)
     sender.get_streams()
 
 
@@ -24,8 +24,8 @@ def send(use_webcam):
         config = json.load(json_config)
     webcam = config["camera"]["name"]
     while continue_sending:
-        check_status()
         poll()
+        check_status()
         (
             stream_id,
             ip,
@@ -34,7 +34,7 @@ def send(use_webcam):
             is_rendezvous,
         ) = sender.consume_stream()
         if ip and input_channel_port:
-            time.sleep(3)
+            time.sleep(1)
             if is_rendezvous:
                 sender.processes[stream_id] = [
                     subprocess.Popen(
@@ -151,7 +151,6 @@ def browse(file):
 
 def start():
     if camera_selection.get() == 1:
-        Thread(target=poll).start()
         Thread(target=send, args=(True,)).start()
     else:
         input_file_1 = choose_file_1_entry.get()
