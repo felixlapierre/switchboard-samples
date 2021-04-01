@@ -94,49 +94,24 @@ def check_status():
 def send_statistics(stream_id):
     # While stream is still playing
     while stream_id in receiver.processes:
-        with open(f"stats\{stream_id}-stats.json") as json_stats:
-            data = json_stats.read()[:-2]
-        data = json.loads("[{}]".format(data))
+        with open(f"{stream_id}-stats.json") as json_stats:
+            data = json_stats.read().splitlines()
         if data:
             # Get the most recent (cumulative) stats available
-            stats = data[-1]
+            stats = json.loads(data[-1])
             # TODO: Newer version of srt-live-transmit outputs more stats
             # Option #1: Process them on samples end like it's done below to fit our endpoint
             # Option #2: Make the necessary changes in the backend instead
             stats = {"id" if k == "sid" else k: v for k, v in stats.items()}
             stats["id"] = stream_id
-            del stats["timepoint"]
             del stats["send"]["packetsUnique"]
             del stats["send"]["packetsFilterExtra"]
             del stats["send"]["bytesUnique"]
-            del stats["send"]["sendPeriod"]
             del stats["recv"]["packetsUnique"]
             del stats["recv"]["packetsFilterExtra"]
             del stats["recv"]["packetsFilterSupply"]
             del stats["recv"]["packetsFilterLoss"]
             del stats["recv"]["bytesUnique"]
-            # Cast to int or double
-            stats["time"] = int(stats["time"])
-            for k, v in stats["window"].items():
-                try:
-                    stats["window"][k] = int(v)
-                except ValueError:
-                    stats["window"][k] = float(v)
-            for k, v in stats["link"].items():
-                try:
-                    stats["link"][k] = int(v)
-                except ValueError:
-                    stats["link"][k] = float(v)
-            for k, v in stats["send"].items():
-                try:
-                    stats["send"][k] = int(v)
-                except ValueError:
-                    stats["send"][k] = float(v)
-            for k, v in stats["recv"].items():
-                try:
-                    stats["recv"][k] = int(v)
-                except ValueError:
-                    stats["recv"][k] = float(v)
             receiver.send_stats(stats)
         time.sleep(receiver.stats_freq)
     # Delete stats file
