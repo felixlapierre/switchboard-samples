@@ -1,4 +1,4 @@
-import requests, json
+import requests, json, base64
 from constants import (
     DEVICE_ENDPOINT,
     ENCODER_ENDPOINT,
@@ -27,6 +27,7 @@ class Sender:
         self.streams = streams if streams is not None else []
         self.processes = processes if processes is not None else {}
         self.jwt = jwt
+        self.config = self.get_config()
 
     def register(self):
         response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")
@@ -57,6 +58,7 @@ class Sender:
             }
             r = self.request("post", ENCODER_ENDPOINT, encoder_payload)
             if r.status_code == 200:
+                self.config = self.get_config()
                 return f"Encoder with serial number {self.serial_number} has been successfully registered."
         elif response.status_code == 403:
             return "Invalid credentials or JWT token. Try again."
@@ -111,3 +113,14 @@ class Sender:
             # Set to None so next time we re-authenticate (token most likely expired)
             self.jwt = None
         return response
+
+    def get_config(self):
+        response = self.request("get", f"{ENCODER_ENDPOINT}/{self.serial_number}")
+        if response.status_code == 200:
+            if response.json()["device"]["configurationInstance"]:
+                b64_config = response.json()["device"]["configurationInstance"]
+                return json.loads(base64.b64decode(b64_config))
+            else:
+                return {}
+        else:
+            return {}
