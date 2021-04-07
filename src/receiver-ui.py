@@ -1,4 +1,4 @@
-import ipaddress, subprocess, time, json
+import ipaddress, subprocess, time, json, shutil
 from tkinter import *
 from tkinter import filedialog, messagebox
 from receiver import Receiver
@@ -10,7 +10,7 @@ from pathlib import Path
 def on_close_window():
     global continue_receiving
     continue_receiving = False
-    path_to_stats.rmdir()
+    shutil.rmtree(path_to_stats)
     root.destroy()
 
 
@@ -92,30 +92,31 @@ def check_status():
 
 
 def send_statistics(stream_id):
+    p = Path.cwd() / "stats" / f"{stream_id}-stats.json"
     # While stream is still playing
     while stream_id in receiver.processes:
-        with open(f"{stream_id}-stats.json") as json_stats:
-            data = json_stats.read().splitlines()
-        if data:
-            # Get the most recent (cumulative) stats available
-            stats = json.loads(data[-1])
-            # TODO: Newer version of srt-live-transmit outputs more stats
-            # Option #1: Process them on samples end like it's done below to fit our endpoint
-            # Option #2: Make the necessary changes in the backend instead
-            stats = {"id" if k == "sid" else k: v for k, v in stats.items()}
-            stats["id"] = stream_id
-            del stats["send"]["packetsUnique"]
-            del stats["send"]["packetsFilterExtra"]
-            del stats["send"]["bytesUnique"]
-            del stats["recv"]["packetsUnique"]
-            del stats["recv"]["packetsFilterExtra"]
-            del stats["recv"]["packetsFilterSupply"]
-            del stats["recv"]["packetsFilterLoss"]
-            del stats["recv"]["bytesUnique"]
-            receiver.send_stats(stats)
+        if p.exists():
+            with open(f"{stream_id}-stats.json") as json_stats:
+                data = json_stats.read().splitlines()
+            if data:
+                # Get the most recent (cumulative) stats available
+                stats = json.loads(data[-1])
+                # TODO: Newer version of srt-live-transmit outputs more stats
+                # Option #1: Process them on samples end like it's done below to fit our endpoint
+                # Option #2: Make the necessary changes in the backend instead
+                stats = {"id" if k == "sid" else k: v for k, v in stats.items()}
+                stats["id"] = stream_id
+                del stats["send"]["packetsUnique"]
+                del stats["send"]["packetsFilterExtra"]
+                del stats["send"]["bytesUnique"]
+                del stats["recv"]["packetsUnique"]
+                del stats["recv"]["packetsFilterExtra"]
+                del stats["recv"]["packetsFilterSupply"]
+                del stats["recv"]["packetsFilterLoss"]
+                del stats["recv"]["bytesUnique"]
+                receiver.send_stats(stats)
         time.sleep(receiver.stats_freq)
     # Delete stats file
-    p = Path.cwd() / "stats" / f"{stream_id}-stats.json"
     p.unlink(missing_ok=True)
 
 
