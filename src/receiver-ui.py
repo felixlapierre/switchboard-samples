@@ -96,7 +96,7 @@ def send_statistics(stream_id):
     # While stream is still playing
     while stream_id in receiver.processes:
         if p.exists():
-            with open(f"{stream_id}-stats.json") as json_stats:
+            with open(p) as json_stats:
                 data = json_stats.read().splitlines()
             if data:
                 # Get the most recent (cumulative) stats available
