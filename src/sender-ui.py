@@ -98,7 +98,7 @@ def start_ffmpeg_file(url, port):
 
 def start_ffmpeg_webcam(webcam, url):
     video_size = "1280x720"
-    framerate = 7.5
+    framerate = "7.5"
     if "camera" in sender.config:
         video_size = sender.config["camera"]["video_size"]
         framerate = sender.config["camera"]["framerate"]
