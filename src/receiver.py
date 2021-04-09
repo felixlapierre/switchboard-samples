@@ -6,6 +6,7 @@ from constants import (
     RECEIVER_SERIAL_NUMBER,
     STREAM_ENDPOINT,
     AUTH_ENDPOINT,
+    STATISTICS_ENDPOINT,
 )
 
 
@@ -27,6 +28,10 @@ class Receiver:
         self.streams = streams if streams is not None else []
         self.processes = processes if processes is not None else {}
         self.jwt = jwt
+        with open("config.json") as json_config:
+            config = json.load(json_config)
+        self.stats_freq = config["statistics"]["frequency"]
+        self.internal_port = 5000
 
     def register(self):
         response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")
@@ -91,6 +96,10 @@ class Receiver:
         else:
             return False
 
+    def send_stats(self, stats):
+        r = self.request("put", STATISTICS_ENDPOINT, stats)
+        return r.status_code
+
     def request(self, method, url, data=None):
         if not self.jwt:
             with open("config.json") as json_config:
@@ -107,6 +116,8 @@ class Receiver:
             response = requests.get(url, headers=auth_header)
         elif method == "post":
             response = requests.post(url, json=data, headers=auth_header)
+        elif method == "put":
+            response = requests.put(url, json=data, headers=auth_header)
         else:
             response = requests.delete(url, headers=auth_header)
         if response.status_code == 403:

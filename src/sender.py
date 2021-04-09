@@ -28,6 +28,7 @@ class Sender:
         self.processes = processes if processes is not None else {}
         self.jwt = jwt
         self.config = self.get_config()
+        self.internal_port = 5000
 
     def register(self):
         response = self.request("get", f"{DEVICE_ENDPOINT}/{self.serial_number}")
