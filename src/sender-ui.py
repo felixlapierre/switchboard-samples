@@ -5,23 +5,16 @@ from constants import SRT_SCHEME, LOCAL_HOST, UDP_SCHEME
 from sender import Sender
 from threading import Thread
 
-INTERNAL_PORT = 5000
-
 
 def on_close_window():
-    global continue_polling
-    continue_polling = False
     global continue_sending
     continue_sending = False
     root.destroy()
 
 
 def poll():
-    global continue_polling
-    continue_polling = True
-    while continue_polling:
-        time.sleep(5)
-        sender.get_streams()
+    time.sleep(3)
+    sender.get_streams()
 
 
 def send(use_webcam):
@@ -31,6 +24,7 @@ def send(use_webcam):
         config = json.load(json_config)
     webcam = config["camera"]["name"]
     while continue_sending:
+        poll()
         check_status()
         (
             stream_id,
@@ -40,22 +34,22 @@ def send(use_webcam):
             is_rendezvous,
         ) = sender.consume_stream()
         if ip and input_channel_port:
-            time.sleep(3)
+            time.sleep(1)
             if is_rendezvous:
                 sender.processes[stream_id] = [
                     subprocess.Popen(
                         [
                             "srt-live-transmit",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{sender.internal_port}",
                             f"{SRT_SCHEME}://{ip}:{input_channel_port}?mode=rendezvous",
                         ]
                     )
                 ]
-                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}?pkt_size=1316"
+                ffmpeg_url = f"{UDP_SCHEME}://{LOCAL_HOST}:{sender.internal_port}?pkt_size=1316"
                 sender.processes[stream_id].insert(
                     0, start_ffmpeg(use_webcam, webcam, ffmpeg_url, output_channel_port)
                 )
-                INTERNAL_PORT += 1
+                sender.internal_port += 1
             else:
                 ffmpeg_url = f"{SRT_SCHEME}://{ip}:{input_channel_port}?pkt_size=1316"
                 sender.processes[stream_id] = [
@@ -157,7 +151,6 @@ def browse(file):
 
 def start():
     if camera_selection.get() == 1:
-        Thread(target=poll).start()
         Thread(target=send, args=(True,)).start()
     else:
         input_file_1 = choose_file_1_entry.get()
@@ -169,7 +162,6 @@ def start():
         file2_valid = is_valid_file(input_file_2) and not input_file_1
         both_valid = is_valid_file(input_file_1) and is_valid_file(input_file_2)
         if file1_valid or file2_valid or both_valid:
-            Thread(target=poll).start()
             Thread(target=send, args=(False,)).start()
         else:
             messagebox.showerror("Error", "Invalid file type.")

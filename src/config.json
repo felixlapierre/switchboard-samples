@@ -3,5 +3,8 @@
         "name": "HD WebCam"
     },
     "username": "admin",
-    "password": "admin"
+    "password": "admin",
+    "statistics": {
+        "frequency": 5
+    }
 }

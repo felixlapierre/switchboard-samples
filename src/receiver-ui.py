@@ -1,33 +1,29 @@
-import ipaddress, subprocess, time
+import ipaddress, subprocess, time, json, shutil
 from tkinter import *
 from tkinter import filedialog, messagebox
 from receiver import Receiver
 from threading import Thread
 from constants import UDP_SCHEME, LOCAL_HOST, SRT_SCHEME
-
-INTERNAL_PORT = 5000
+from pathlib import Path
 
 
 def on_close_window():
-    global continue_polling
-    continue_polling = False
     global continue_receiving
     continue_receiving = False
+    shutil.rmtree(path_to_stats)
     root.destroy()
 
 
 def poll():
-    global continue_polling
-    continue_polling = True
-    while continue_polling:
-        time.sleep(5)
-        receiver.get_streams()
+    time.sleep(3)
+    receiver.get_streams()
 
 
 def receive():
     global continue_receiving
     continue_receiving = True
     while continue_receiving:
+        poll()
         check_status()
         stream_id, ip, port, is_rendezvous = receiver.consume_stream()
         if ip and port:
@@ -36,8 +32,15 @@ def receive():
                     subprocess.Popen(
                         [
                             "srt-live-transmit",
+                            "-statsout",
+                            f"stats\{stream_id}-stats.json",
+                            "-pf",
+                            "json",
+                            "-s",
+                            "100",
+                            "-f",
                             f"{SRT_SCHEME}://{ip}:{port}?mode=rendezvous",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{receiver.internal_port}",
                         ]
                     )
                 ]
@@ -48,11 +51,13 @@ def receive():
                             "ffplay",
                             "-v",
                             "fatal",
-                            f"{UDP_SCHEME}://{LOCAL_HOST}:{INTERNAL_PORT}",
+                            f"{UDP_SCHEME}://{LOCAL_HOST}:{receiver.internal_port}",
                         ]
                     ),
                 )
-                INTERNAL_PORT += 1
+                time.sleep(1)
+                Thread(target=send_statistics, args=(stream_id,)).start()
+                receiver.internal_port += 1
             else:
                 receiver.processes[stream_id] = [
                     subprocess.Popen(
@@ -86,6 +91,35 @@ def check_status():
                 del receiver.processes[stream_id]
 
 
+def send_statistics(stream_id):
+    p = Path.cwd() / "stats" / f"{stream_id}-stats.json"
+    # While stream is still playing
+    while stream_id in receiver.processes:
+        if p.exists():
+            with open(p) as json_stats:
+                data = json_stats.read().splitlines()
+            if data:
+                # Get the most recent (cumulative) stats available
+                stats = json.loads(data[-1])
+                # TODO: Newer version of srt-live-transmit outputs more stats
+                # Option #1: Process them on samples end like it's done below to fit our endpoint
+                # Option #2: Make the necessary changes in the backend instead
+                stats = {"id" if k == "sid" else k: v for k, v in stats.items()}
+                stats["id"] = stream_id
+                del stats["send"]["packetsUnique"]
+                del stats["send"]["packetsFilterExtra"]
+                del stats["send"]["bytesUnique"]
+                del stats["recv"]["packetsUnique"]
+                del stats["recv"]["packetsFilterExtra"]
+                del stats["recv"]["packetsFilterSupply"]
+                del stats["recv"]["packetsFilterLoss"]
+                del stats["recv"]["bytesUnique"]
+                receiver.send_stats(stats)
+        time.sleep(receiver.stats_freq)
+    # Delete stats file
+    p.unlink(missing_ok=True)
+
+
 def register():
     receiver.display_name = display_name_entry.get()
     receiver.serial_number = serial_number_entry.get()
@@ -105,7 +139,6 @@ def register():
 
 
 def start():
-    Thread(target=poll).start()
     Thread(target=receive).start()
 
 
@@ -135,6 +168,8 @@ root.title("Switchboard - Sample Receiver")
 root.geometry("800x400")
 root.iconphoto(True, PhotoImage(file=r"public/bean.png"))
 receiver = Receiver()
+path_to_stats = Path.cwd() / "stats"
+path_to_stats.mkdir()
 default_font = ("TkDefaultFont", 12)
 
 # Registration section elements
