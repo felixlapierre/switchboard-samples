@@ -284,6 +284,14 @@ start_button = Button(
     width=20,
     command=start,
 )
+log_button = Button(
+    streaming_label_frame,
+    text="Report error",
+    font=default_font,
+    bg="#FF0000",
+    width=20,
+    command=sender.send_log,
+)
 
 # Placing on grid
 registration_label_frame.pack(expand="yes", fill="both")
@@ -306,6 +314,7 @@ browse_button_2.grid(row=1, column=2, padx=20, pady=5)
 camera_label.grid(row=3, column=0)
 camera_checkbox.grid(sticky="W", row=3, column=1)
 start_button.grid(row=3, column=2, pady=10)
+log_button.grid(row=4, column=2, pady=10)
 
 root.protocol("WM_DELETE_WINDOW", on_close_window)
 root.mainloop()

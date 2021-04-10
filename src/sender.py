@@ -1,4 +1,4 @@
-import requests, json, base64
+import requests, json, base64, datetime
 from constants import (
     DEVICE_ENDPOINT,
     ENCODER_ENDPOINT,
@@ -6,6 +6,7 @@ from constants import (
     SENDER_SERIAL_NUMBER,
     STREAM_ENDPOINT,
     AUTH_ENDPOINT,
+    STREAM_LOG_ENDPOINT,
 )
 
 
@@ -125,3 +126,16 @@ class Sender:
                 return {}
         else:
             return {}
+
+    def send_log(self):
+        for stream in self.streams:
+            stream_id = str(stream["id"])
+            print(f"Sending log for stream {stream_id}.")
+            now = datetime.datetime.now()
+            stream_log_payload = {
+                "streamId": stream_id,
+                "message": "Error: Unable to reach receiver to establish stream.",
+                "dateTime": now.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+            }
+            r = self.request("post", STREAM_LOG_ENDPOINT, stream_log_payload)
+            print(r.status_code)
