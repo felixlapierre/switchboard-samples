@@ -135,5 +135,6 @@ class Sender:
                 "streamId": stream_id,
                 "message": "Unable to reach receiver to establish stream",
                 "dateTime": now.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+                "level": "error",
             }
             r = self.request("post", STREAM_LOG_ENDPOINT, stream_log_payload)
