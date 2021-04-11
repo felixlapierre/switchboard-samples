@@ -67,7 +67,7 @@ class Sender:
             return "Encoder already registered!"
 
     def get_streams(self):
-        response = self.request("get", f"{ENCODER_ENDPOINT}/{self.serial_number}/streams")
+        response = self.request("get", f"{ENCODER_ENDPOINT}/{self.serial_number}/stream")
         if response.status_code == 200:
             self.streams = response.json()
 
