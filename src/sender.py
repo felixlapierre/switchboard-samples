@@ -137,4 +137,4 @@ class Sender:
                 "dateTime": now.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
                 "level": "error",
             }
-            r = self.request("post", STREAM_LOG_ENDPOINT, stream_log_payload)
+            self.request("post", STREAM_LOG_ENDPOINT, stream_log_payload)
