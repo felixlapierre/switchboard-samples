@@ -1,4 +1,4 @@
-import requests, json, base64
+import requests, json, base64, datetime
 from constants import (
     DEVICE_ENDPOINT,
     ENCODER_ENDPOINT,
@@ -6,6 +6,7 @@ from constants import (
     SENDER_SERIAL_NUMBER,
     STREAM_ENDPOINT,
     AUTH_ENDPOINT,
+    STREAM_LOG_ENDPOINT,
 )
 
 
@@ -67,7 +68,7 @@ class Sender:
             return "Encoder already registered!"
 
     def get_streams(self):
-        response = self.request("get", f"{ENCODER_ENDPOINT}/{self.serial_number}/streams")
+        response = self.request("get", f"{ENCODER_ENDPOINT}/{self.serial_number}/stream")
         if response.status_code == 200:
             self.streams = response.json()
 
@@ -125,3 +126,15 @@ class Sender:
                 return {}
         else:
             return {}
+
+    def send_log(self):
+        for stream in self.streams:
+            stream_id = str(stream["id"])
+            now = datetime.datetime.now()
+            stream_log_payload = {
+                "streamId": stream_id,
+                "message": "Unable to reach receiver to establish stream",
+                "dateTime": now.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+                "level": "error",
+            }
+            self.request("post", STREAM_LOG_ENDPOINT, stream_log_payload)

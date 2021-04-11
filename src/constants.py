@@ -13,6 +13,7 @@ DECODER_ENDPOINT = "http://localhost:8080/decoder"
 STREAM_ENDPOINT = "http://localhost:8080/stream"
 AUTH_ENDPOINT = "http://localhost:8080/auth/token"
 STATISTICS_ENDPOINT = "http://localhost:8080/stream/statistics"
+STREAM_LOG_ENDPOINT = "http://localhost:8080/log/stream"
 
 # Streaming
 SRT_SCHEME = "srt"
